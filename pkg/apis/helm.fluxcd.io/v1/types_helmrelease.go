@@ -17,6 +17,12 @@ import (
 // be a serialised `resource.ID`.
 const AntecedentAnnotation = "helm.fluxcd.io/antecedent"
 
+// SyncAnnotation
+const SyncAnnotation = "helm.fluxcd.io/sync"
+
+// ForceAnnotation is an annotation on a resource indicating that
+const ForceAnnotation = "helm.fluxcd.io/force"
+
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -407,64 +413,6 @@ type HelmReleaseSpec struct {
 	Values HelmValues `json:"values,omitempty"`
 }
 
-// HelmReleaseStatus contains status information about an HelmRelease.
-type HelmReleaseStatus struct {
-	// ReleaseName is the name as either supplied or generated.
-	// +optional
-	ReleaseName string `json:"releaseName,omitempty"`
-
-	// ReleaseStatus is the status as given by Helm for the release
-	// managed by this resource.
-	// +optional
-	ReleaseStatus string `json:"releaseStatus,omitempty"`
-
-	// ObservedGeneration is the most recent generation observed by
-	// the operator.
-	// +optional
-	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
-
-	// Revision holds the Git hash or version of the chart currently
-	// deployed.
-	// +optional
-	Revision string `json:"revision,omitempty"`
-
-	// RollbackCount records the amount of rollback attempts made,
-	// it is incremented after a rollback failure and reset after a
-	// successful upgrade or revision change.
-	// +optional
-	RollbackCount int64 `json:"rollbackCount,omitempty"`
-
-	// Conditions contains observations of the resource's state, e.g.,
-	// has the chart which it refers to been fetched.
-	// +optional
-	// +patchMergeKey=type
-	// +patchStrategy=merge
-	Conditions []HelmReleaseCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
-}
-
-type HelmReleaseCondition struct {
-	// Type of the condition, one of ('ChartFetched', 'Released', 'RolledBack').
-	Type HelmReleaseConditionType `json:"type"`
-	// Status of the condition, one of ('True', 'False', 'Unknown').
-	Status ConditionStatus `json:"status"`
-	// LastUpdateTime is the timestamp corresponding to the last status
-	// update of this condition.
-	// +optional
-	LastUpdateTime *metav1.Time `json:"lastUpdateTime,omitempty"`
-	// LastTransitionTime is the timestamp corresponding to the last status
-	// change of this condition.
-	// +optional
-	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Reason is a brief machine readable explanation for the condition's last
-	// transition.
-	// +optional
-	Reason string `json:"reason,omitempty"`
-	// Message is a human readable description of the details of the last
-	// transition, complementing reason.
-	// +optional
-	Message string `json:"message,omitempty"`
-}
-
 // HelmReleaseConditionType represents an HelmRelease condition value.
 // Valid HelmReleaseConditionType values are:
 // "ChartFetched",
@@ -485,3 +433,84 @@ const (
 	// has been rolled back
 	HelmReleaseRolledBack HelmReleaseConditionType = "RolledBack"
 )
+
+type HelmReleaseCondition struct {
+	// Type of the condition, one of ('ChartFetched', 'Released', 'RolledBack').
+	Type HelmReleaseConditionType `json:"type"`
+
+	// Status of the condition, one of ('True', 'False', 'Unknown').
+	Status ConditionStatus `json:"status"`
+
+	// LastUpdateTime is the timestamp corresponding to the last status
+	// update of this condition.
+	// +optional
+	LastUpdateTime *metav1.Time `json:"lastUpdateTime,omitempty"`
+
+	// LastTransitionTime is the timestamp corresponding to the last status
+	// change of this condition.
+	// +optional
+	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
+
+	// Reason is a brief machine readable explanation for the condition's last
+	// transition.
+	// +optional
+	Reason string `json:"reason,omitempty"`
+
+	// Message is a human readable description of the details of the last
+	// transition, complementing reason.
+	// +optional
+	Message string `json:"message,omitempty"`
+}
+
+type HelmReleasePhase string
+
+const (
+	HelmReleasePhaseInstalling HelmReleasePhase = "Installing"
+	HelmReleasePhaseUpgrading HelmReleasePhase = "Upgrading"
+	HelmReleasePhaseSucceeded HelmReleasePhase = "Succeeded"
+	HelmReleasePhaseFailed HelmReleasePhase = "Failed"
+
+	HelmReleasePhaseRollingBack HelmReleasePhase = "RollingBack"
+	HelmReleasePhaseRolledBack HelmReleasePhase = "RolledBack"
+	HelmReleasePhaseRollbackFailed HelmReleasePhase = "RollbackFailed"
+
+	HelmReleasePhaseChartFetched HelmReleasePhase = "ChartFetched"
+	HelmReleasePhaseChartFetchFailed HelmReleasePhase = "ChartFetchFailed"
+)
+
+// HelmReleaseStatus contains status information about an HelmRelease.
+type HelmReleaseStatus struct {
+	// ObservedGeneration is the most recent generation observed by
+	// the operator.
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+
+	Phase HelmReleasePhase `json:"phase,omitempty"`
+
+	// ReleaseName is the name as either supplied or generated.
+	// +optional
+	ReleaseName string `json:"releaseName,omitempty"`
+
+	// ReleaseStatus is the status as given by Helm for the release
+	// managed by this resource.
+	// +optional
+	ReleaseStatus string `json:"releaseStatus,omitempty"`
+
+	// Revision holds the Git hash or version of the chart currently
+	// deployed.
+	// +optional
+	Revision string `json:"revision,omitempty"`
+
+	// RollbackCount records the amount of rollback attempts made,
+	// it is incremented after a rollback failure and reset after a
+	// successful upgrade or revision change.
+	// +optional
+	RollbackCount int64 `json:"rollbackCount,omitempty"`
+
+	// Conditions contains observations of the resource's state, e.g.,
+	// has the chart which it refers to been fetched.
+	// +optional
+	// +patchMergeKey=type
+	// +patchStrategy=merge
+	Conditions []HelmReleaseCondition `json:"conditions,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
+}

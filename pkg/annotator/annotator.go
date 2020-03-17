@@ -40,7 +40,7 @@ type AnnotationErrors []AnnotationError
 func (err AnnotationErrors) Error() string {
 	var errs []string
 	for _, e := range err {
-		errs = append(errs, e.Err.Error())
+		errs = append(errs, e.Error())
 	}
 	return strings.Join(errs, "; ")
 }
